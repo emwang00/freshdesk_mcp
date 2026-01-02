@@ -148,61 +148,6 @@ async def get_tickets(page: Optional[int] = 1, per_page: Optional[int] = 30) -> 
             return {"error": f"An unexpected error occurred: {str(e)}"}
 
 @mcp.tool()
-async def update_ticket(ticket_id: int, ticket_fields: Dict[str, Any]) -> Dict[str, Any]:
-    """Update a ticket in Freshdesk."""
-    if not ticket_fields:
-        return {"error": "No fields provided for update"}
-
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
-        "Content-Type": "application/json"
-    }
-
-    # Separate custom fields from standard fields
-    custom_fields = ticket_fields.pop('custom_fields', {})
-
-    # Prepare the update data
-    update_data = {}
-
-    # Add standard fields if they are provided
-    for field, value in ticket_fields.items():
-        update_data[field] = value
-
-    # Add custom fields if they exist
-    if custom_fields:
-        update_data['custom_fields'] = custom_fields
-
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.put(url, headers=headers, json=update_data)
-            response.raise_for_status()
-
-            return {
-                "success": True,
-                "message": "Ticket updated successfully",
-                "ticket": response.json()
-            }
-
-        except httpx.HTTPStatusError as e:
-            error_message = f"Failed to update ticket: {str(e)}"
-            try:
-                error_details = e.response.json()
-                if "errors" in error_details:
-                    error_message = f"Validation errors: {error_details['errors']}"
-            except Exception:
-                pass
-            return {
-                "success": False,
-                "error": error_message
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"An unexpected error occurred: {str(e)}"
-            }
-
-@mcp.tool()
 async def get_ticket(ticket_id: int):
     """Get a ticket in Freshdesk."""
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}"
@@ -236,24 +181,6 @@ async def get_ticket_conversation(ticket_id: int)-> list[Dict[str, Any]]:
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
         return response.json()
-
-@mcp.tool()
-async def update_ticket_conversation(conversation_id: int,body: str)-> Dict[str, Any]:
-    """Update a conversation for a ticket in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/conversations/{conversation_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    data = {
-        "body": body
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=data)
-        status_code = response.status_code
-        if status_code == 200:
-            return response.json()
-        else:
-            return f"Cannot update conversation ${response.json()}"
 
 @mcp.tool()
 async def get_agents(page: Optional[int] = 1, per_page: Optional[int] = 30)-> list[Dict[str, Any]]:
@@ -315,19 +242,6 @@ async def search_contacts(query: str)-> list[Dict[str, Any]]:
         return response.json()
 
 @mcp.tool()
-async def update_contact(contact_id: int, contact_fields: Dict[str, Any])-> Dict[str, Any]:
-    """Update a contact in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contacts/{contact_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    data = {}
-    for field, value in contact_fields.items():
-        data[field] = value
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=data)
-        return response.json()
-@mcp.tool()
 async def list_canned_responses(folder_id: int)-> list[Dict[str, Any]]:
     """List all canned responses in Freshdesk."""
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/canned_response_folders/{folder_id}/responses"
@@ -362,31 +276,6 @@ async def view_canned_response(canned_response_id: int)-> Dict[str, Any]:
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
         return response.json()
-@mcp.tool()
-async def update_canned_response(canned_response_id: int, canned_response_fields: Dict[str, Any])-> Dict[str, Any]:
-    """Update a canned response in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/canned_responses/{canned_response_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=canned_response_fields)
-        return response.json()
-@mcp.tool()
-async def update_canned_response_folder(folder_id: int, name: str)-> Dict[str, Any]:
-    """Update a canned response folder in Freshdesk."""
-    print(folder_id, name)
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/canned_response_folders/{folder_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    data = {
-        "name": name
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=data)
-        return response.json()
-
 @mcp.tool()
 async def list_solution_articles(folder_id: int)-> list[Dict[str, Any]]:
     """List all solution articles in Freshdesk."""
@@ -437,20 +326,6 @@ async def view_solution_category(category_id: int)-> Dict[str, Any]:
         return response.json()
 
 @mcp.tool()
-async def update_solution_category(category_id: int, category_fields: Dict[str, Any])-> Dict[str, Any]:
-    """Update a solution category in Freshdesk."""
-    if not category_fields.get("name"):
-        return {"error": "Name is required"}
-
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/solutions/categories/{category_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=category_fields)
-        return response.json()
-
-@mcp.tool()
 async def view_solution_category_folder(folder_id: int)-> Dict[str, Any]:
     """View a solution category folder in Freshdesk."""
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/solutions/folders/{folder_id}"
@@ -460,20 +335,6 @@ async def view_solution_category_folder(folder_id: int)-> Dict[str, Any]:
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
         return response.json()
-@mcp.tool()
-async def update_solution_category_folder(folder_id: int, folder_fields: Dict[str, Any])-> Dict[str, Any]:
-    """Update a solution category folder in Freshdesk."""
-    if not folder_fields.get("name"):
-        return {"error": "Name is required"}
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/solutions/folders/{folder_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=folder_fields)
-        return response.json()
-
-
 @mcp.tool()
 async def view_solution_article(article_id: int)-> Dict[str, Any]:
     """View a solution article in Freshdesk."""
@@ -486,17 +347,6 @@ async def view_solution_article(article_id: int)-> Dict[str, Any]:
         return response.json()
 
 @mcp.tool()
-async def update_solution_article(article_id: int, article_fields: Dict[str, Any])-> Dict[str, Any]:
-    """Update a solution article in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/solutions/articles/{article_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=article_fields)
-        return response.json()
-
-@mcp.tool()
 async def view_agent(agent_id: int)-> Dict[str, Any]:
     """View an agent in Freshdesk."""
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/agents/{agent_id}"
@@ -505,17 +355,6 @@ async def view_agent(agent_id: int)-> Dict[str, Any]:
     }
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
-        return response.json()
-
-@mcp.tool()
-async def update_agent(agent_id: int, agent_fields: Dict[str, Any]) -> Dict[str, Any]:
-    """Update an agent in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/agents/{agent_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=agent_fields)
         return response.json()
 
 @mcp.tool()
@@ -566,35 +405,6 @@ async def view_ticket_field(ticket_field_id: int) -> Dict[str, Any]:
         return response.json()
 
 @mcp.tool()
-async def update_ticket_field(ticket_field_id: int, ticket_field_fields: Dict[str, Any]) -> Dict[str, Any]:
-    """Update a ticket field in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/admin/ticket_fields/{ticket_field_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=ticket_field_fields)
-        return response.json()
-
-@mcp.tool()
-async def update_group(group_id: int, group_fields: Dict[str, Any]) -> Dict[str, Any]:
-    """Update a group in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/groups/{group_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.put(url, headers=headers, json=group_fields)
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            return {
-                "error": f"Failed to update group: {str(e)}",
-                "details": e.response.json() if e.response else None
-            }
-
-@mcp.tool()
 async def list_contact_fields()-> list[Dict[str, Any]]:
     """List all contact fields in Freshdesk."""
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/contact_fields"
@@ -616,16 +426,6 @@ async def view_contact_field(contact_field_id: int) -> Dict[str, Any]:
         response = await client.get(url, headers=headers)
         return response.json()
 
-@mcp.tool()
-async def update_contact_field(contact_field_id: int, contact_field_fields: Dict[str, Any]) -> Dict[str, Any]:
-    """Update a contact field in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contact_fields/{contact_field_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, headers=headers, json=contact_field_fields)
-        return response.json()
 @mcp.tool()
 async def get_field_properties(field_name: str):
     """Get properties of a specific field by name."""
@@ -788,28 +588,6 @@ async def view_ticket_summary(ticket_id: int) -> Dict[str, Any]:
             return response.json()
         except httpx.HTTPStatusError as e:
             return {"error": f"Failed to fetch ticket summary: {str(e)}"}
-        except Exception as e:
-            return {"error": f"An unexpected error occurred: {str(e)}"}
-
-@mcp.tool()
-async def update_ticket_summary(ticket_id: int, body: str) -> Dict[str, Any]:
-    """Update the summary of a ticket in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}/summary"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "body": body
-    }
-
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.put(url, headers=headers, json=data)
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            return {"error": f"Failed to update ticket summary: {str(e)}"}
         except Exception as e:
             return {"error": f"An unexpected error occurred: {str(e)}"}
 
