@@ -34,10 +34,6 @@ The server offers several tools for Freshdesk operations:
     - `ticket_id` (number, required): ID of the ticket to update
     - `ticket_fields` (object, required): Fields to update
 
-- `delete_ticket`: Delete a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket to delete
-
 - `search_tickets`: Search for tickets based on criteria
   - **Inputs**:
     - `query` (string, required): Search query string
@@ -82,10 +78,6 @@ The server offers several tools for Freshdesk operations:
   - **Inputs**:
     - `ticket_id` (number, required): ID of the ticket
     - `body` (string, required): New summary content
-
-- `delete_ticket_summary`: Delete the summary of a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
 
 - `get_agents`: Get all agents
   - **Inputs**:
