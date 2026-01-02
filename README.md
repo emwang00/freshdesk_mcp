@@ -9,7 +9,9 @@ An MCP server implementation that integrates with Freshdesk, enabling AI models 
 
 - **Freshdesk Integration**: Seamless interaction with Freshdesk API endpoints
 - **AI Model Support**: Enables AI models to perform support operations through Freshdesk
-- **Automated Ticket Management**: Handle ticket creation and responses
+- **Comprehensive Operations**: Support for tickets, agents, contacts, companies, groups, canned responses, and knowledge base articles
+- **Pagination Support**: Built-in pagination for list operations (tickets, agents, contacts, companies, groups)
+- **Search Capabilities**: Search functionality for tickets, agents, contacts, and companies
 
 ## Components
 
@@ -17,74 +19,61 @@ An MCP server implementation that integrates with Freshdesk, enabling AI models 
 
 The server offers several tools for Freshdesk operations:
 
-- `create_ticket`: Create new support tickets
-  - **Inputs**:
-    - `subject` (string, required): Ticket subject
-    - `description` (string, required): Ticket description
-    - `source` (number, required): Ticket source code
-    - `priority` (number, required): Ticket priority level
-    - `status` (number, required): Ticket status code
-    - `email` (string, optional): Email of the requester
-    - `requester_id` (number, optional): ID of the requester
-    - `custom_fields` (object, optional): Custom fields to set on the ticket
-    - `additional_fields` (object, optional): Additional top-level fields
-
-- `search_tickets`: Search for tickets based on criteria
-  - **Inputs**:
-    - `query` (string, required): Search query string
+#### Ticket Operations
 
 - `get_ticket_fields`: Get all ticket fields
-  - **Inputs**:
-    - None
+  - **Inputs**: None
 
-- `get_tickets`: Get all tickets
+- `get_tickets`: Get all tickets with pagination support
   - **Inputs**:
-    - `page` (number, optional): Page number to fetch
-    - `per_page` (number, optional): Number of tickets per page
+    - `page` (number, optional, default: 1): Page number to fetch
+    - `per_page` (number, optional, default: 30): Number of tickets per page (1-100)
 
 - `get_ticket`: Get a single ticket
   - **Inputs**:
     - `ticket_id` (number, required): ID of the ticket to get
 
+- `search_tickets`: Search for tickets based on criteria
+  - **Inputs**:
+    - `query` (string, required): Search query string
+
 - `get_ticket_conversation`: Get conversation for a ticket
   - **Inputs**:
     - `ticket_id` (number, required): ID of the ticket
-
-- `create_ticket_reply`: Reply to a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-    - `body` (string, required): Content of the reply
-
-- `create_ticket_note`: Add a note to a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-    - `body` (string, required): Content of the note
 
 - `view_ticket_summary`: Get the summary of a ticket
   - **Inputs**:
     - `ticket_id` (number, required): ID of the ticket
 
-- `get_agents`: Get all agents
+- `view_ticket_field`: View a ticket field
   - **Inputs**:
-    - `page` (number, optional): Page number
-    - `per_page` (number, optional): Number of agents per page
+    - `ticket_field_id` (number, required): ID of the ticket field
+
+- `get_field_properties`: Get properties of a specific field by name
+  - **Inputs**:
+    - `field_name` (string, required): Name of the field
+
+#### Agent Operations
+
+- `get_agents`: Get all agents with pagination support
+  - **Inputs**:
+    - `page` (number, optional, default: 1): Page number
+    - `per_page` (number, optional, default: 30): Number of agents per page (1-100)
 
 - `view_agent`: Get a single agent
   - **Inputs**:
     - `agent_id` (number, required): ID of the agent
 
-- `create_agent`: Create a new agent
-  - **Inputs**:
-    - `agent_fields` (object, required): Agent details
-
 - `search_agents`: Search for agents
   - **Inputs**:
     - `query` (string, required): Search query
 
-- `list_contacts`: Get all contacts
+#### Contact Operations
+
+- `list_contacts`: Get all contacts with pagination support
   - **Inputs**:
-    - `page` (number, optional): Page number
-    - `per_page` (number, optional): Contacts per page
+    - `page` (number, optional, default: 1): Page number
+    - `per_page` (number, optional, default: 30): Contacts per page (1-100)
 
 - `get_contact`: Get a single contact
   - **Inputs**:
@@ -94,10 +83,19 @@ The server offers several tools for Freshdesk operations:
   - **Inputs**:
     - `query` (string, required): Search query
 
-- `list_companies`: Get all companies
+- `list_contact_fields`: List all contact fields
+  - **Inputs**: None
+
+- `view_contact_field`: View a contact field
   - **Inputs**:
-    - `page` (number, optional): Page number
-    - `per_page` (number, optional): Companies per page
+    - `contact_field_id` (number, required): ID of the contact field
+
+#### Company Operations
+
+- `list_companies`: Get all companies with pagination support
+  - **Inputs**:
+    - `page` (number, optional, default: 1): Page number
+    - `per_page` (number, optional, default: 30): Companies per page (1-100)
 
 - `view_company`: Get a single company
   - **Inputs**:
@@ -112,8 +110,56 @@ The server offers several tools for Freshdesk operations:
     - `name` (string, required): Company name
 
 - `list_company_fields`: Get all company fields
+  - **Inputs**: None
+
+#### Group Operations
+
+- `list_groups`: List all groups with pagination support
   - **Inputs**:
-    - None
+    - `page` (number, optional, default: 1): Page number
+    - `per_page` (number, optional, default: 30): Groups per page (1-100)
+
+- `view_group`: View a group
+  - **Inputs**:
+    - `group_id` (number, required): ID of the group
+
+#### Canned Response Operations
+
+- `list_canned_response_folders`: List all canned response folders
+  - **Inputs**: None
+
+- `list_canned_responses`: List all canned responses in a folder
+  - **Inputs**:
+    - `folder_id` (number, required): ID of the folder
+
+- `view_canned_response`: View a canned response
+  - **Inputs**:
+    - `canned_response_id` (number, required): ID of the canned response
+
+#### Solution (Knowledge Base) Operations
+
+- `list_solution_categories`: List all solution categories
+  - **Inputs**: None
+
+- `view_solution_category`: View a solution category
+  - **Inputs**:
+    - `category_id` (number, required): ID of the category
+
+- `list_solution_folders`: List all solution folders in a category
+  - **Inputs**:
+    - `category_id` (number, required): ID of the category
+
+- `view_solution_category_folder`: View a solution category folder
+  - **Inputs**:
+    - `folder_id` (number, required): ID of the folder
+
+- `list_solution_articles`: List all solution articles in a folder
+  - **Inputs**:
+    - `folder_id` (number, required): ID of the folder
+
+- `view_solution_article`: View a solution article
+  - **Inputs**:
+    - `article_id` (number, required): ID of the article
 
 ## Getting Started
 
@@ -164,9 +210,14 @@ npx -y @smithery/cli install @effytech/freshdesk_mcp --client claude
 
 Once configured, you can ask Claude to perform operations like:
 
-- "Create a new ticket with subject 'Payment Issue for customer A101' and description as 'Reaching out for a payment issue in the last month for customer A101', where customer email is a101@acme.com and set priority to high"
-- "List all high-priority tickets assigned to the agent John Doe"
-- "List previous tickets of customer A101 in last 30 days"
+- "Get all tickets from page 1"
+- "Search for tickets with query 'status:2 priority:3'"
+- "Get ticket conversation for ticket ID 12345"
+- "List all agents"
+- "Search for contacts matching 'john@example.com'"
+- "Find company by name 'Acme Corporation'"
+- "List all solution categories"
+- "View canned responses in folder 1"
 
 
 ## Testing
